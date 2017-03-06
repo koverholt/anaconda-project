@@ -43,15 +43,21 @@ class FileDownloader(object):
 
         if self._hash_algorithm is not None:
             hasher = getattr(hashlib, self._hash_algorithm)()
+
+        # We need the curl_httpclient in order to use an http proxy
+        httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+
         self._client = httpclient.AsyncHTTPClient(
             io_loop=io_loop,
             max_clients=1,
             # without this we buffer a huge amount
             # of stuff and then call the streaming_callback
-            # once.
-            max_buffer_size=1024 * 1024,
-            # without this we 599 on large downloads
-            max_body_size=100 * 1024 * 1024 * 1024,
+            # once, using SimpleHTTPClient
+            # (but using CurlAsyncHTTPClient now)
+            # max_buffer_size=1024 * 1024,
+            # without this we 599 on large downloads, using SimpleHTTPClient
+            # (but using CurlAsyncHTTPClient now)
+            # max_body_size=100 * 1024 * 1024 * 1024,
             force_instance=True)
 
         tmp_filename = self._filename + ".part"
